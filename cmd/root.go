@@ -50,6 +50,7 @@ var completeCmd = &cobra.Command{
 	Long:  `Enter the task id to complete the task`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Completing: ", args[0])
+		utils.CompleteTask(args[0])
 	},
 }
 

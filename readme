@@ -1,0 +1,5 @@
+go run main.go add "Buy groceries"
+go run main.go list
+go run main.go complete 1
+go run main.go delete 1
+

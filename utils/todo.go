@@ -37,20 +37,16 @@ func DeleteTask(taskId string) {
 		log.Fatal("Error reading file")
 	}
 
-	if err != nil {
-		log.Fatal("Error parsing id in delete task", err)
-	}
-
 	var updatedRecords [][]string
 	for _, record := range records {
 		if record[0] != taskId {
 			updatedRecords = append(updatedRecords, record)
 		}
+	}
 
-		if err := WriteAllToCsv("test.csv", updatedRecords); err != nil {
-			log.Fatal("Error writing to file in delete task", err)
-		}
-
+	// fmt.Println(updatedRecords)
+	if err := WriteAllToCsv("test.csv", updatedRecords); err != nil {
+		log.Fatal("Error writing to file in delete task", err)
 	}
 }
 
@@ -73,4 +69,20 @@ func ListTasks() {
 	}
 
 	w.Flush()
+}
+
+func CompleteTask(taskId string) {
+	records, err := ReadCsvFile("test.csv")
+	if err != nil {
+		log.Fatal("Error reading file")
+	}
+
+	for _, record := range records {
+		if record[0] == taskId {
+			record[3] = strconv.FormatBool(true)
+		}
+	}
+	if err := WriteAllToCsv("test.csv", records); err != nil {
+		log.Fatal("Error editing task to complete", err)
+	}
 }

@@ -32,7 +32,7 @@ func ReadCsvFile(filename string) ([][]string, error) {
 func WriteAllToCsv(filename string, rows [][]string) error {
 	filePath := getFilePath(filename)
 
-	file, err := loadFile(filePath)
+	file, err := loadWriteFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -40,6 +40,7 @@ func WriteAllToCsv(filename string, rows [][]string) error {
 
 	defer closeFile(file)
 
+	fmt.Println(rows)
 	if err := writer.WriteAll(rows); err != nil {
 		return fmt.Errorf("error occured writing to file", err)
 	}
@@ -48,17 +49,31 @@ func WriteAllToCsv(filename string, rows [][]string) error {
 }
 
 func loadFile(filepath string) (*os.File, error) {
-	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file for reading")
 	}
 
 	// Exclusive lock obtained on the file descriptor
-	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
-		_ = f.Close()
+	if err := syscall.Flock(int(file.Fd()), syscall.LOCK_EX); err != nil {
+		_ = file.Close()
 		return nil, err
 	}
-	return f, nil
+	return file, nil
+}
+
+func loadWriteFile(filepath string) (*os.File, error) {
+	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file for reading")
+	}
+
+	// Exclusive lock obtained on the file descriptor
+	if err := syscall.Flock(int(file.Fd()), syscall.LOCK_EX); err != nil {
+		_ = file.Close()
+		return nil, err
+	}
+	return file, nil
 }
 
 func closeFile(f *os.File) error {
