@@ -2,39 +2,45 @@ package utils
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"text/tabwriter"
 	"time"
 )
 
-func AddTask(description string) {
+const (
+	CsvFileName = "test.csv"
+	DateFormat  = "2006-01-02"
+)
 
-	records, err := ReadCsvFile("test.csv")
+func AddTask(description string) error {
+
+	records, err := ReadCsvFile(CsvFileName)
 	if err != nil {
-		log.Fatal("Error reading file")
+		return fmt.Errorf("error writing to file in add task: %w", err)
 	}
 
 	row := []string{
 		strconv.Itoa(len(records)),
 		description,
-		time.Now().Format("2006-01-02"),
+		time.Now().Format(DateFormat),
 		strconv.FormatBool(false),
 	}
 
 	records = append(records, row)
 
-	writeErr := WriteAllToCsv("test.csv", records)
+	writeErr := WriteAllToCsv(CsvFileName, records)
 	if writeErr != nil {
-		log.Fatal("Erorr writing to file in add task", writeErr)
+		return fmt.Errorf("error writing to file in add task: %w", writeErr)
 	}
+
+	return nil
 }
 
-func DeleteTask(taskId string) {
-	records, err := ReadCsvFile("test.csv")
+func DeleteTask(taskId string) error {
+	records, err := ReadCsvFile(CsvFileName)
 	if err != nil {
-		log.Fatal("Error reading file")
+		return fmt.Errorf("error reading file: %w", err)
 	}
 
 	var updatedRecords [][]string
@@ -44,17 +50,18 @@ func DeleteTask(taskId string) {
 		}
 	}
 
-	// fmt.Println(updatedRecords)
-	if err := WriteAllToCsv("test.csv", updatedRecords); err != nil {
-		log.Fatal("Error writing to file in delete task", err)
+	if err := WriteAllToCsv(CsvFileName, updatedRecords); err != nil {
+		return fmt.Errorf("error writing to file in delete task: %w", err)
 	}
+
+	return nil
 }
 
-func ListTasks() {
-	records, err := ReadCsvFile("test.csv")
+func ListTasks() error {
+	records, err := ReadCsvFile(CsvFileName)
 
 	if err != nil {
-		fmt.Println("Error reading file")
+		return fmt.Errorf("error reading file: %w", err)
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
@@ -69,12 +76,13 @@ func ListTasks() {
 	}
 
 	w.Flush()
+	return nil
 }
 
-func CompleteTask(taskId string) {
-	records, err := ReadCsvFile("test.csv")
+func CompleteTask(taskId string) error {
+	records, err := ReadCsvFile(CsvFileName)
 	if err != nil {
-		log.Fatal("Error reading file")
+		return fmt.Errorf("error reading file: %w", err)
 	}
 
 	for _, record := range records {
@@ -82,7 +90,8 @@ func CompleteTask(taskId string) {
 			record[3] = strconv.FormatBool(true)
 		}
 	}
-	if err := WriteAllToCsv("test.csv", records); err != nil {
-		log.Fatal("Error editing task to complete", err)
+	if err := WriteAllToCsv(CsvFileName, records); err != nil {
+		return fmt.Errorf("error editing task to complete: %w", err)
 	}
+	return nil
 }
